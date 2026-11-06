@@ -2,6 +2,9 @@
 
 一个把 3×3×3 魔方写成**矩阵**的交互式工具：54 维状态向量、54×54 置换矩阵、Kociemba 两阶段求解、可播放的 3D 转动、M/E/S 中层转动，以及没有打乱公式时使用的 **2D / 3D 色块上色输入**。
 
+**在线演示：** <https://exo35.github.io/rubik-matrix-lab/>  
+**源码仓库：** <https://github.com/exo35/rubik-matrix-lab>
+
 ![矩阵魔方实验室封面](assets/cover.png)
 
 ## 快速开始

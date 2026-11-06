@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>矩阵魔方实验室 · Matrix Cube Lab</title>
+<meta name="description" content="把 3×3×3 魔方写成 54 维状态向量，用 54×54 置换矩阵和 Kociemba 两阶段算法求解；支持 54 色块上色输入，可在没有打乱公式时录入实体魔方。">
+<meta name="theme-color" content="#07090d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23080b10'/%3E%3Cg stroke='%23080b10' stroke-width='3'%3E%3Crect x='9' y='9' width='14' height='14' rx='2' fill='%23f4f6f8'/%3E%3Crect x='25' y='9' width='14' height='14' rx='2' fill='%23ff3b47'/%3E%3Crect x='41' y='9' width='14' height='14' rx='2' fill='%232f7cff'/%3E%3Crect x='9' y='25' width='14' height='14' rx='2' fill='%2321c06b'/%3E%3Crect x='25' y='25' width='14' height='14' rx='2' fill='%23ffd43b'/%3E%3Crect x='41' y='25' width='14' height='14' rx='2' fill='%23ff8a1f'/%3E%3Crect x='9' y='41' width='14' height='14' rx='2' fill='%23ff3b47'/%3E%3Crect x='25' y='41' width='14' height='14' rx='2' fill='%232f7cff'/%3E%3Crect x='41' y='41' width='14' height='14' rx='2' fill='%2321c06b'/%3E%3C/g%3E%3C/svg%3E">
+<style>/*__STYLE__*/</style>
+</head>
+<body>
+<div class="ambient" aria-hidden="true">
+  <span class="orb orb-a"></span><span class="orb orb-b"></span><span class="orb orb-c"></span>
+  <div class="grid-overlay"></div>
+</div>
+
+<header class="topbar">
+  <a class="brand" href="#top" aria-label="矩阵魔方实验室首页">
+    <span class="brand-mark" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </span>
+    <span class="brand-text">
+      <strong>MATRIX CUBE LAB</strong>
+      <small>矩阵魔方实验室</small>
+    </span>
+  </a>
+  <div class="topbar-right">
+    <div class="solver-badge" id="solverBadge">
+      <span class="status-dot loading"></span>
+      <span id="solverBadgeText">求解器初始化</span>
+    </div>
+    <a class="top-link" href="#concepts">原理 <span>↗</span></a>
+  </div>
+</header>
+
+<main class="shell" id="top">
+  <section class="intro reveal">
+    <div class="intro-title">
+      <p class="eyebrow">PERMUTATION MATRIX SOLVER <span>/</span> 3×3×3</p>
+      <h1>矩阵魔方<span>实验室</span></h1>
+    </div>
+    <p class="lede">把 54 个色块写成向量，把每次转动写成 <b>54×54 置换矩阵</b>。求解，就是找一串矩阵，让它们把打乱向量乘回复原向量。</p>
+  </section>
+
+  <section class="workspace reveal" style="--delay: 80ms">
+    <article class="panel stage-card">
+      <header class="panel-head">
+        <div class="head-label">
+          <span class="index">01</span>
+          <div><h2>实时状态</h2><p>STATE VECTOR / LIVE</p></div>
+        </div>
+        <div class="pill" id="faceCount">6 / 6 面复原</div>
+      </header>
+
+      <div class="cube-stage" id="cubeStage">
+        <canvas id="cubeCanvas"></canvas>
+        <div class="hud hud-left">
+          <span class="hud-kicker">CURRENT MOVE</span>
+          <strong id="hudMove">—</strong>
+        </div>
+        <div class="hud hud-right">
+          <span class="dot-live" id="liveDot"></span>
+          <span id="hudStatus">拖动旋转</span>
+        </div>
+        <div class="formula-float">
+          <span class="math">x′ = P<sub>m</sub> · x</span>
+          <span id="hudFormula">m = U</span>
+        </div>
+        <button class="icon-btn reset-view" id="btnResetView" title="重置视角" aria-label="重置视角">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 15v5h-5M20 9V4h-5M4 15v5h5"/></svg>
+        </button>
+      </div>
+
+      <div class="move-deck">
+        <div class="deck-head">
+          <span>手动置换</span>
+          <span class="deck-hint">点击任意转动 · 矩阵同步</span>
+        </div>
+        <div class="move-grid" id="moveGrid"></div>
+        <div class="slice-head">
+          <span>中层转动</span>
+          <span>M 随 L · E 随 D · S 随 F</span>
+        </div>
+        <div class="slice-grid" id="sliceMoveGrid"></div>
+      </div>
+    </article>
+
+    <aside class="panel matrix-card">
+      <header class="panel-head">
+        <div class="head-label">
+          <span class="index">02</span>
+          <div><h2>矩阵视图</h2><p>MATRIX INSPECTOR</p></div>
+        </div>
+        <div class="pill mono">54 × 54</div>
+      </header>
+
+      <div class="tabbar" role="tablist" aria-label="矩阵视图切换">
+        <button class="tab active" data-tab="faces" role="tab" aria-selected="true">面矩阵</button>
+        <button class="tab" data-tab="perm" role="tab" aria-selected="false">置换矩阵</button>
+        <button class="tab" data-tab="vector" role="tab" aria-selected="false">状态向量</button>
+      </div>
+
+      <div class="tab-panels">
+        <section class="tab-panel active" id="panelFaces" role="tabpanel">
+          <div class="face-net-wrap">
+            <div class="face-net" id="faceNet"></div>
+            <div class="net-caption">
+              <span>6 个 3×3 面矩阵</span>
+              <span class="mono">M<sub>U</sub> … M<sub>B</sub></span>
+            </div>
+          </div>
+          <div class="face-legend" id="faceLegend"></div>
+        </section>
+
+        <section class="tab-panel" id="panelPerm" role="tabpanel">
+          <div class="perm-toolbar">
+            <div class="select-wrap">
+              <label for="moveSelect">矩阵</label>
+              <select id="moveSelect" aria-label="选择转动的置换矩阵"></select>
+            </div>
+            <button class="mini-btn" id="btnCycleMove" type="button">下一个 ↻</button>
+          </div>
+          <div class="perm-canvas-wrap">
+            <canvas id="permCanvas"></canvas>
+            <div class="perm-corner tl">源 →</div>
+            <div class="perm-corner bl">目 ↓</div>
+          </div>
+          <div class="perm-readout" id="permReadout">P(U) · 54 个非零元</div>
+        </section>
+
+        <section class="tab-panel" id="panelVector" role="tabpanel">
+          <div class="vector-head">
+            <div>
+              <span class="mini-label">STATE VECTOR</span>
+              <strong>x ∈ {U,R,F,D,L,B}<sup>54</sup></strong>
+            </div>
+            <span class="mono dim" id="vectorDim">54 × 1</span>
+          </div>
+          <div class="vector-grid" id="vectorGrid"></div>
+          <div class="vector-foot">
+            <div class="vector-foot-line">
+              <span class="mini-label">ONE QUARTER TURN</span>
+              <span class="math">P<sub>m</sub> · x = x′</span>
+            </div>
+            <p>一次面转动只置换 20 个色块，其余 34 个分量保持不动；这就是置换矩阵的稀疏性。</p>
+          </div>
+        </section>
+      </div>
+
+      <footer class="matrix-caption" id="matrixCaption">
+        每个面都是状态向量的一个 3×3 切片
+      </footer>
+    </aside>
+  </section>
+
+  <section class="panel solver-card reveal" id="solverPanel" style="--delay: 160ms">
+    <div class="solver-main">
+      <div class="solver-intro">
+        <div class="head-label">
+          <span class="index">03</span>
+          <div><h2>矩阵求解</h2><p>KOCIEMBA TWO-PHASE / MATRIX VERIFIED</p></div>
+        </div>
+
+        <div class="equation-block" aria-label="矩阵求解公式">
+          <span class="eq-side">x<sub>solved</sub></span>
+          <span class="eq-op">=</span>
+          <span class="eq-term"><i>P</i><sub>m<sub>k</sub></sub></span>
+          <span class="eq-op">⋯</span>
+          <span class="eq-term"><i>P</i><sub>m<sub>1</sub></sub></span>
+          <span class="eq-term plain">x<sub>0</sub></span>
+        </div>
+
+        <label class="field-label" for="scrambleInput">打乱公式 <span>SCRAMBLE NOTATION</span></label>
+        <div class="input-row">
+          <input id="scrambleInput" type="text" spellcheck="false" autocomplete="off" aria-label="打乱公式" placeholder="R U R' U' F2 ...">
+          <button class="btn ghost" id="btnApply" type="button">应用</button>
+        </div>
+
+        <div class="action-row">
+          <button class="btn primary" id="btnSolve" type="button">
+            <span class="btn-spark" aria-hidden="true"></span>
+            <span id="btnSolveText">矩阵求解</span>
+          </button>
+          <button class="btn ghost" id="btnRandom" type="button">随机打乱</button>
+          <button class="btn ghost" id="btnSolved" type="button">复原</button>
+          <button class="btn ghost paint-trigger" id="btnPaint" type="button" aria-haspopup="dialog">
+            <span class="paint-dot" aria-hidden="true"></span>色块上色
+          </button>
+        </div>
+
+        <p class="hint">支持 U R F D L B 与中层 M E S，后缀 <code>'</code> 表示逆时针，<code>2</code> 表示 180°。没有打乱公式？点「色块上色」录入 54 个颜色。</p>
+      </div>
+
+      <div class="solution-column">
+        <div class="solution-head">
+          <div>
+            <h3>解法序列</h3>
+            <p id="solutionMeta">等待求解 · SOLUTION</p>
+          </div>
+          <div class="solution-actions">
+            <div class="stat"><b id="statMoves">0</b><span>步</span></div>
+            <div class="stat"><b id="statTime">—</b><span>耗时</span></div>
+            <button class="icon-btn copy-btn" id="btnCopy" type="button" title="复制解法" aria-label="复制解法">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="solution-body" id="solutionBody">
+          <div class="solution-empty">
+            <span class="empty-glyph">P</span>
+            <p>输入打乱或点击「矩阵求解」<br>生成一条经过矩阵验证的解法</p>
+          </div>
+        </div>
+
+        <div class="transport">
+          <div class="transport-buttons">
+            <button class="icon-btn" id="btnPrev" type="button" title="上一步" aria-label="上一步">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6 9 12l6 6"/></svg>
+            </button>
+            <button class="play-btn" id="btnPlay" type="button" title="播放解法" aria-label="播放解法">
+              <svg viewBox="0 0 24 24" class="icon-play" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+              <svg viewBox="0 0 24 24" class="icon-pause" aria-hidden="true"><path d="M8 5h3v14H8zM13 5h3v14h-3z"/></svg>
+            </button>
+            <button class="icon-btn" id="btnNext" type="button" title="下一步" aria-label="下一步">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+          </div>
+          <input class="step-slider" id="stepSlider" type="range" min="0" max="0" value="0" step="1" aria-label="解法进度">
+          <span class="step-label mono" id="stepLabel">0 / 0</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="concepts reveal" id="concepts" style="--delay: 240ms">
+    <article class="concept">
+      <span class="concept-num">01</span>
+      <h3>状态向量</h3>
+      <p>54 个色块按 U R F D L B 展开，得到一个 54 维向量。六个面矩阵只是它的切片。</p>
+      <div class="mini-vector" id="miniVector" aria-hidden="true"></div>
+    </article>
+    <article class="concept">
+      <span class="concept-num">02</span>
+      <h3>置换矩阵</h3>
+      <p>每个转动 <i>P</i> 是一个 54×54 的 0/1 矩阵：每行每列恰好一个 1，所以长度与颜色数永远守恒。</p>
+      <div class="mini-perm" id="miniPerm" aria-hidden="true"></div>
+    </article>
+    <article class="concept">
+      <span class="concept-num">03</span>
+      <h3>两阶段搜索</h3>
+      <p>Kociemba 算法把解拆成两个子群：先进入 G1，再在受限转动集合中归位，最后用矩阵乘法验证。</p>
+      <div class="mini-flow" aria-hidden="true">
+        <span>打乱</span><i>→</i><span>G1</span><i>→</i><span>复原</span>
+      </div>
+    </article>
+  </section>
+
+  <section class="formula-band reveal" style="--delay: 300ms">
+    <div>
+      <span class="mini-label">THE WHOLE IDEA</span>
+      <p>解魔方 = 在置换群中找一条最短（或足够短）的乘法路径。</p>
+    </div>
+    <div class="formula-big">
+      <span>P<sub>m<sub>k</sub></sub> ⋯ P<sub>m<sub>1</sub></sub></span>
+      <span class="eq-op">·</span>
+      <span>x<sub>0</sub></span>
+      <span class="eq-op">=</span>
+      <span class="solved">x<sub>solved</sub></span>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    <span class="brand-mini">MATRIX CUBE LAB</span>
+    <span>54 维状态 · 54×54 置换 · Kociemba 两阶段</span>
+  </div>
+  <div class="footer-right">
+    <span>MIT licensed <a href="https://github.com/ldez/cubejs" target="_blank" rel="noreferrer">cubejs</a> by akheron</span>
+    <span class="mono">v1.0</span>
+  </div>
+</footer>
+
+<div class="paint-overlay" id="paintOverlay" hidden>
+  <div class="paint-modal" role="dialog" aria-modal="true" aria-labelledby="paintTitle">
+    <header class="paint-head">
+      <div>
+        <span class="paint-kicker">COLOR INPUT <span>/</span> 54 CELLS</span>
+        <h2 id="paintTitle">给魔方上色</h2>
+        <p>先选颜色，再点击 3D 魔方上的色块，或切换到平面展开。拖动可旋转 3D 魔方；中心块固定，用来标识六个面。</p>
+      </div>
+      <button class="icon-btn paint-close" id="btnPaintClose" type="button" aria-label="关闭上色">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </header>
+
+    <div class="paint-toolbar">
+      <div class="paint-palette" id="paintPalette" aria-label="颜色选择"></div>
+      <div class="paint-counts" id="paintCounts"></div>
+    </div>
+
+    <div class="paint-viewbar">
+      <div class="paint-view-tabs" role="tablist" aria-label="上色视图">
+        <button class="paint-view-btn active" data-paint-view="3d" type="button" role="tab" aria-selected="true">3D 魔方</button>
+        <button class="paint-view-btn" data-paint-view="net" type="button" role="tab" aria-selected="false">平面展开</button>
+      </div>
+      <span class="paint-view-hint" id="paintViewHint">拖动旋转 · 点击色块上色</span>
+    </div>
+
+    <div class="paint-stage-wrap" id="paint3dWrap">
+      <canvas id="paint3dCanvas"></canvas>
+      <span class="paint-stage-badge">3D PAINT</span>
+      <button class="icon-btn paint-stage-reset" id="btnPaint3dReset" type="button" title="重置 3D 视角" aria-label="重置 3D 视角">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 15v5h-5M20 9V4h-5M4 15v5h5"/></svg>
+      </button>
+    </div>
+
+    <div class="paint-net" id="paintNet" aria-label="六面上色网" hidden></div>
+
+    <div class="paint-status" id="paintStatus" role="status" aria-live="polite">
+      选择一种颜色，然后开始上色。
+    </div>
+    <p class="paint-help">以实际魔方中心块颜色为准；<b>共 54 格，每种颜色必须正好 9 格</b>。应用时会检查角块方向、棱块翻转和排列奇偶性。</p>
+
+    <footer class="paint-actions">
+      <div class="paint-actions-left">
+        <button class="btn ghost" id="btnPaintRead" type="button">读取当前</button>
+        <button class="btn ghost" id="btnPaintSolved" type="button">复原色</button>
+      </div>
+      <div class="paint-actions-right">
+        <button class="btn ghost" id="btnPaintCancel" type="button">取消</button>
+        <button class="btn" id="btnPaintApply" type="button">应用上色</button>
+        <button class="btn primary" id="btnPaintSolve" type="button">应用并求解</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>/*__WORKER_SOURCE__*/</script>
+<script>/*__CORE__*/</script>
+<script>/*__APP__*/</script>
+</body>
+</html>

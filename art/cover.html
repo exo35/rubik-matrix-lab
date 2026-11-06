@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>矩阵魔方实验室 · Cover</title>
+<link rel="stylesheet" href="art.css">
+</head>
+<body>
+<div class="page cover">
+  <div class="bg-grid"></div>
+  <div class="orb a"></div>
+  <div class="orb b"></div>
+
+  <header class="cover-top">
+    <div class="brand">
+      <span class="brand-mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span>
+        <strong>MATRIX CUBE LAB</strong>
+        <small>矩阵魔方实验室</small>
+      </span>
+    </div>
+    <div class="cover-top-right">
+      <b>54-D STATE VECTOR</b><br>
+      54×54 PERMUTATION MATRIX<br>
+      KOCIEMBA TWO-PHASE SOLVER
+    </div>
+  </header>
+
+  <main class="cover-main">
+    <section class="cover-copy">
+      <div class="eyebrow"><span class="line"></span>MATRIX METHODS FOR RUBIK'S CUBE<b>/</b>3×3×3</div>
+      <h1>把魔方<span>写成矩阵</span></h1>
+      <p class="lede">把 54 个色块写成状态向量，把每一次转动写成 <b>54×54 置换矩阵</b>。解魔方，就是找一串矩阵，让它们把打乱向量乘回复原向量。</p>
+      <div class="cover-stats">
+        <div class="cover-stat"><b>54</b><span>DIMENSIONAL STATE</span></div>
+        <div class="cover-stat"><b>54×54</b><span>PERMUTATION MATRIX</span></div>
+        <div class="cover-stat"><b>22</b><span>STEPS IN THIS EXAMPLE</span></div>
+      </div>
+      <div class="cover-formula">
+        <span>x<sub>solved</sub></span><span class="op">=</span>
+        <span><i>P</i><sub>m<sub>k</sub></sub></span><span class="op">⋯</span>
+        <span><i>P</i><sub>m<sub>1</sub></sub></span><span class="op">·</span>
+        <span>x<sub>0</sub></span>
+      </div>
+    </section>
+
+    <section class="cover-visual">
+      <div class="cover-glow"></div>
+      <canvas id="coverMatrix" data-perm="R"></canvas>
+      <canvas id="coverCube" data-cube="scramble" data-scale="0.255" data-cy="0.5"></canvas>
+      <div class="chip-float one"><b>x</b> ∈ {U,R,F,D,L,B}<sup>54</sup></div>
+      <div class="chip-float two"><b>P</b><sub>m</sub> ∈ {0,1}<sup>54×54</sup></div>
+      <div class="chip-float three">P<sup>T</sup>P = I · 每行/列恰有一个 1</div>
+    </section>
+  </main>
+
+  <footer class="cover-footer">
+    <span><b>交互式工具</b> · 3D 矩阵演示 · 一键求解 · 逐步验证</span>
+    <span>MATRIX CUBE LAB / 2026</span>
+  </footer>
+</div>
+<script src="../src/core.js"></script>
+<script src="art.js"></script>
+</body>
+</html>

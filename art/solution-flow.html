@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>一次真实的 22 步求解 · Solve Flow</title>
+<link rel="stylesheet" href="art.css">
+</head>
+<body>
+<div class="page flow">
+  <div class="bg-grid"></div>
+  <div class="orb a"></div>
+  <div class="orb b"></div>
+
+  <header class="flow-head">
+    <div>
+      <div class="eyebrow"><span class="line"></span>REAL SOLVE <b>/</b> MATRIX VERIFIED</div>
+      <h1>一次真实的<span>22 步求解</span></h1>
+    </div>
+    <div class="flow-badge"><span>KOCIEMBA TWO-PHASE</span><b>9 + 13</b><span>STEPS</span></div>
+  </header>
+
+  <main class="flow-main">
+    <section class="flow-left">
+      <div class="scramble-box">
+        <span>SCRAMBLE / x₀</span>
+        <code>R U R' U' F2 L D2 B' R2 U2 L' B2 D' F' L2 U B2 D2 R'</code>
+      </div>
+      <canvas id="flowCube" data-cube="scramble" data-scale="0.255" data-cy="0.48"></canvas>
+      <div class="flow-stats">
+        <div class="flow-stat"><b>54</b><span>STATE DIMENSIONS</span></div>
+        <div class="flow-stat"><b>22</b><span>MATRIX PRODUCTS</span></div>
+        <div class="flow-stat"><b>6 / 6</b><span>FACES RESTORED</span></div>
+      </div>
+    </section>
+
+    <section class="flow-right">
+      <h2>两阶段解法</h2>
+      <p class="desc">阶段 1 把所有棱块与角块的方向归零，并让中层棱块进入中层，得到 G1 状态；阶段 2 只使用受限转动集合完成归位。</p>
+
+      <div class="phase-block p1">
+        <div class="phase-block-head"><span>PHASE 1 · G0 → G1</span><b>9 步</b></div>
+        <div class="flow-chips" data-chips="1"></div>
+      </div>
+
+      <div class="phase-block p2">
+        <div class="phase-block-head"><span>PHASE 2 · G1 → SOLVED</span><b>13 步</b></div>
+        <div class="flow-chips" data-chips="2"></div>
+      </div>
+
+      <div class="flow-diagram">
+        <div class="fd-step"><span>01 / G0</span><b>任意打乱</b><small>54 个分量处于任意合法排列</small></div>
+        <i>→</i>
+        <div class="fd-step"><span>02 / G1</span><b>方向归零</b><small>棱/角方向归零，中层棱块就位</small></div>
+        <i>→</i>
+        <div class="fd-step"><span>03 / SOLVED</span><b>6 面复原</b><small>受限转动集合内完成归位</small></div>
+      </div>
+      <div class="flow-diagram-note">阶段 2 只使用 U、D、R2、L2、F2、B2，搜索树被大幅压缩。</div>
+
+      <div class="flow-mini">
+        <canvas id="flowPerm" data-perm="R2"></canvas>
+        <div class="flow-mini-copy">
+          <span class="mini-label">ONE MATRIX IN THE PRODUCT</span>
+          <div class="flow-mini-eq"><i>P</i>(R2) <span class="op">·</span> x</div>
+          <p>矩阵中 54 个 1 的位置，就是 54 个色块的新位置。连续的 22 个矩阵相乘，把打乱态送回单位态。</p>
+          <div class="flow-mini-legend">
+            <span><i style="background:#f4f6f8"></i>U</span><span><i style="background:#ff3b47"></i>R</span><span><i style="background:#21c06b"></i>F</span><span><i style="background:#ffd43b"></i>D</span><span><i style="background:#ff8a1f"></i>L</span><span><i style="background:#2f7cff"></i>B</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-equation">
+        <div class="eq"><i>P</i><sub>m<sub>22</sub></sub> ⋯ <i>P</i><sub>m<sub>1</sub></sub> <span class="op">·</span> x<sub>0</sub> <span class="op">=</span> <span class="accent">x<sub>solved</sub></span></div>
+        <p>按执行顺序写成矩阵乘积 · 每个 P 都是 54×54 置换矩阵</p>
+        <div class="verify"><span class="dot"></span>矩阵验证通过 · 54 个分量全部归位</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="flow-footer">
+    <span>SCRAMBLE → 22 × MATRIX MULTIPLICATION → SOLVED</span>
+    <span>MATRIX CUBE LAB / 交互式工具附带此示例</span>
+  </footer>
+</div>
+<script src="../src/core.js"></script>
+<script src="art.js"></script>
+</body>
+</html>

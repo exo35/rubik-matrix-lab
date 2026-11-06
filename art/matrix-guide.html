@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>矩阵如何解魔方 · Matrix Guide</title>
+<link rel="stylesheet" href="art.css">
+</head>
+<body>
+<div class="page guide">
+  <div class="bg-grid"></div>
+  <div class="orb a"></div>
+  <div class="orb b"></div>
+
+  <header class="guide-head">
+    <div>
+      <div class="eyebrow"><span class="line"></span>MATRIX METHODS <b>/</b> EXPLAINED</div>
+      <h1>矩阵如何<span>解魔方</span></h1>
+    </div>
+    <p>不需要把 54 个色块当作 54 个独立变量。它们被约束在置换群中：每个转动只是一个 0/1 矩阵。把这条乘法链找出来，魔方就复原了。</p>
+  </header>
+
+  <main class="guide-grid">
+    <section class="g-panel">
+      <span class="g-num">01 / STATE</span>
+      <h2 class="g-title">54 维状态向量</h2>
+      <p class="g-sub">六个面按 U R F D L B 展开，每个色块是一个分量。颜色只是分量的取值。</p>
+      <div class="g-label">x = [ U1 … U9 | R1 … R9 | … | B9 ]<sup>T</sup></div>
+      <div class="v-grid" data-vector></div>
+      <div class="g-label">SIX 3×3 SLICES</div>
+      <div class="slice-row" data-slices></div>
+      <div class="g-formula">x ∈ {U,R,F,D,L,B}<sup>54</sup></div>
+      <p class="g-note">六个 3×3 面矩阵只是同一个 54 维向量的切片。交换两行或重排索引，不会改变这个模型。</p>
+    </section>
+
+    <section class="g-panel">
+      <span class="g-num">02 / TURN</span>
+      <h2 class="g-title">54×54 置换矩阵</h2>
+      <p class="g-sub">一次面转动 = 一次线性变换。矩阵中每行每列恰好一个 1，其余全是 0。</p>
+      <canvas id="guidePerm" data-perm="R"></canvas>
+      <div class="g-formula">x′ = <i>P</i><sub>m</sub> · x</div>
+      <ul class="g-list">
+        <li><b>正交：</b>P<sup>T</sup>P = I，长度与颜色数守恒。</li>
+        <li><b>稀疏：</b>一次面转动只置换 20 个色块。</li>
+        <li><b>可逆：</b>P<sup>−1</sup> = P<sup>T</sup>，逆转动就是转置矩阵。</li>
+      </ul>
+    </section>
+
+    <section class="g-panel">
+      <span class="g-num">03 / SOLVE</span>
+      <h2 class="g-title">找到矩阵的乘积</h2>
+      <p class="g-sub">Kociemba 两阶段搜索把解拆成 G1 前后的两段，再用矩阵乘法逐步验证。</p>
+      <canvas id="guideCube" data-cube="scramble" data-scale="0.235" data-shadow="false"></canvas>
+      <div class="g-formula"><i>P</i><sub>m<sub>k</sub></sub> ⋯ <i>P</i><sub>m<sub>1</sub></sub> · x<sub>0</sub> = x<sub>solved</sub></div>
+      <div class="phase-box">
+        <div class="ph"><span>PHASE 1 · 进入 G1</span><b>9 步</b></div>
+        <div class="chs" data-chips="1"></div>
+      </div>
+      <div class="phase-box">
+        <div class="ph"><span>PHASE 2 · 受限转动</span><b>13 步</b></div>
+        <div class="chs" data-chips="2"></div>
+      </div>
+    </section>
+  </main>
+
+  <section class="guide-band">
+    <p>状态用矩阵表示，转动用矩阵表示，求解就是搜索矩阵乘积。每一步都能被重新乘一遍验证。</p>
+    <div class="big"><i>P</i><sub>m<sub>k</sub></sub> ⋯ <i>P</i><sub>m<sub>1</sub></sub> <span class="op">·</span> x<sub>0</sub> <span class="op">=</span> <span class="accent">x<sub>solved</sub></span></div>
+  </section>
+</div>
+<script src="../src/core.js"></script>
+<script src="art.js"></script>
+</body>
+</html>

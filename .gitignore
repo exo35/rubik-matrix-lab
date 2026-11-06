@@ -1,0 +1,7 @@
+﻿node_modules/
+shots/
+*.cjs
+package-lock.json
+.DS_Store
+Thumbs.db
+*.log
